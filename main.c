@@ -59,15 +59,14 @@ int main(void) {
 
 	while (!WindowShouldClose()) {
 		BeginDrawing();
-
         		ClearBackground(BLACK);
 
 			HandleInput();
 			MovePlayer();
 			CheckBorders();
 			CheckPlayerLinesCollisions(&player, lines, 10);
-			DrawSquarePlayer(&player);
 	
+			DrawSquarePlayer(&player);
 		EndDrawing();
 	}
 
@@ -77,7 +76,6 @@ int main(void) {
 
 void CheckPlayerLinesCollisions(SquarePlayer* player, VerticalLine* line_array, int number_of_elements) {
 	for (int i = 0; i < number_of_elements ; i++) {
-
 		if (line_array[i].length <= 0) {
 			continue;
 		}
@@ -210,13 +208,6 @@ void InitializeGame(void) {
 	int monitor_width = GetMonitorWidth(current_monitor);
 	int monitor_height = GetMonitorHeight(current_monitor);
 
-	char log_buffer[10];
-	sprintf(log_buffer, "%d", monitor_width);
-	TraceLog(LOG_INFO, log_buffer);
-
-	sprintf(log_buffer, "%d", monitor_height);
-	TraceLog(LOG_INFO, log_buffer);
-	
 	window_width = (int)(monitor_width * 0.8f);
 	window_height = (int)(monitor_height * 0.8f);
 
@@ -224,7 +215,6 @@ void InitializeGame(void) {
 	SetWindowPosition(monitor_width / 2 - window_width / 2, monitor_height / 2 - window_height / 2);
 
 	int player_size;
-
 	if (window_height < window_width) {
 		player_size = window_height / 10;
 	}
