@@ -1,41 +1,9 @@
 #include "raylib.h"
+#include "lib/drawables/drawables.h"
 #include <stdio.h>
-
-#define TRUE 1
-#define FALSE 0
-
-const char* WINDOW_NAME = "Rayhop Square";
-const int TARGET_FPS = 240;
-
-const int DEFAULT_WINDOW_WIDTH = 800;
-const int DEFAULT_WINDOW_HEIGHT = 600;
-
-const Color PLAYER_COLOR = RAYWHITE;
-
-const float SPEED = 0.5f;
-const float JUMP_POWER = 3.0f;
-const float GRAVITY_POWER = 0.5f;
 
 int window_width;
 int window_height;
-
-typedef struct VerticalLine {
-	Vector2 position;
-	float length;
-	float thickness;
-	Color color;
-} VerticalLine;
-
-typedef struct SquarePlayer {
-	int size;
-	Color color;
-	Vector2 position;
-	Vector2 previous_position;
-	Vector2 speed;
-	int is_grounded;
-	int number_of_jumps;
-	float air_time;
-} SquarePlayer;
 
 VerticalLine ground_line;
 VerticalLine lines[10] = {0};
@@ -43,12 +11,10 @@ SquarePlayer player;
 
 void HandleInput(void);
 void CheckBorders(void);
-void DrawVerticalLineEx(VerticalLine* line);
-void DrawSquarePlayer(SquarePlayer* square_player);
 void InitializeGame(void);
-void MovePlayer(void);
 void ResetPlayerFall(SquarePlayer* player, Vector2* position);
 void CheckPlayerLinesCollisions(SquarePlayer* player, VerticalLine* lines, int number_of_elements);
+void RegeneratePlatforms(void);
 int PlayerCollidesWithVerticalLine(SquarePlayer* player, VerticalLine* line);
 
 int main(void) {
@@ -59,10 +25,10 @@ int main(void) {
 
 	while (!WindowShouldClose()) {
 		BeginDrawing();
-        		ClearBackground(BLACK);
+        	ClearBackground(BLACK);
 
 			HandleInput();
-			MovePlayer();
+			MovePlayer(&player);
 			CheckBorders();
 			CheckPlayerLinesCollisions(&player, lines, 10);
 	
@@ -128,25 +94,16 @@ void ResetPlayerFall(SquarePlayer* player, Vector2* position) {
 	player->air_time = 0.0f;
 }
 
-void DrawSquarePlayer(SquarePlayer* square_player) {
-	DrawRectangle(square_player->position.x, square_player->position.y, square_player->size, square_player->size, square_player->color);
-}
+void RegeneratePlatforms(void) {
+	for (int i = 1; i < 10; i++) {
+		int length = window_width / 9;
+		int x = GetRandomValue(length / 2, window_width - length / 2);
+		int y = GetRandomValue(player.size * 2, window_height - player.size * 3);
 
-void DrawVerticalLineEx(VerticalLine* line) {
-	float y = line->position.y + line->thickness / 2;
-	Vector2 start_position = (Vector2){line->position.x - line->length / 2, y};
-	Vector2 end_position = (Vector2){line->position.x + line->length / 2, y};
-	DrawLineEx(start_position, end_position, line->thickness, line->color);
-}
-
-void MovePlayer(void) {
-	player.previous_position = player.position;
-	player.position.x += player.speed.x;
-	player.position.y += player.speed.y;
-
-	if (player.is_grounded == FALSE) {
-		player.air_time += GetFrameTime();
-		player.speed.y += GRAVITY_POWER * player.air_time;
+		lines[i].position = (Vector2) {x, y};
+		lines[i].length = length;
+		lines[i].thickness = 5.0f;
+		lines[i].color = RAYWHITE;
 	}
 }
 
@@ -183,6 +140,9 @@ void HandleInput(void) {
 		player.speed.x = 0;
 	}
 
+	if (IsKeyPressed(KEY_R)) {
+		RegeneratePlatforms();
+	}
 
 	if (IsKeyPressed(KEY_UP)) {
 		if (player.number_of_jumps == 0) {
@@ -222,17 +182,7 @@ void InitializeGame(void) {
 		player_size = window_width / 10;
 	}
 
-	for (int i = 1; i < 10; i++) {
-		int length = window_width / 9;
-		int x = GetRandomValue(length / 2, window_width - length / 2);
-		int y = GetRandomValue(player_size * 2, window_height - player_size * 3);
-
-		lines[i].position = (Vector2) {x, y};
-		lines[i].length = length;
-		lines[i].thickness = 5.0f;
-		lines[i].color = RAYWHITE;
-	}
-
+	RegeneratePlatforms();
 
 	lines[0].position = (Vector2) {window_width / 2, window_height - player_size * 2};
 	lines[0].length = window_width / 2;
